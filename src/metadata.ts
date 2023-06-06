@@ -56,8 +56,8 @@ export function processMetadata(cursor: CXCursor) {
 
       case CXCursorKind.CXCursor_EnumDecl: {
         const decl = processEnum(cursor);
-        if (decl.enumDecl) metadata.enumDecls.push(decl.enumDecl);
-        for (const varDecl of decl.varDecls) {
+        if (decl?.enumDecl) metadata.enumDecls.push(decl.enumDecl);
+        for (const varDecl of decl?.varDecls ?? []) {
           metadata.varDecls.push(varDecl);
         }
         break;

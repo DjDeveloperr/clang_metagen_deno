@@ -1,5 +1,5 @@
-import { CXChildVisitResult, CXCursor, CXCursorKind } from "../deps.ts";
-import { NamedDecl } from "./common.ts";
+import { AvailabilityEntry, CXChildVisitResult, CXCursor, CXCursorKind } from "../deps.ts";
+import { NamedDecl, getAvailability } from "./common.ts";
 import { processCXType, TypeMetadata } from "./type.ts";
 import type { VarDecl } from "./var.ts";
 
@@ -13,6 +13,7 @@ export interface EnumDecl extends NamedDecl {
   file: string;
   type: TypeMetadata;
   constants: EnumConstantDecl[];
+  availability: AvailabilityEntry[];
 }
 
 export interface ProcessEnumResult {
@@ -20,12 +21,16 @@ export interface ProcessEnumResult {
   varDecls: VarDecl[];
 }
 
-export function processEnum(cursor: CXCursor): ProcessEnumResult {
+export function processEnum(cursor: CXCursor): ProcessEnumResult | undefined {
+  let availability;
+  if (!(availability = getAvailability(cursor))) return;
+
   const enumDecl: EnumDecl = {
     name: cursor.getSpelling() || cursor.getType()?.getSpelling() || "",
     file: cursor.getLocation().getFileLocation().file.getName(),
     type: processCXType(cursor.getEnumDeclarationIntegerType()!),
     constants: [],
+    availability,
   };
 
   const varDecls: VarDecl[] = [];

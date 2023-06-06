@@ -1,5 +1,5 @@
-import { CXChildVisitResult, CXCursor, CXCursorKind } from "../deps.ts";
-import { CXCursorRepresentation } from "./common.ts";
+import { AvailabilityEntry, CXChildVisitResult, CXCursor, CXCursorKind } from "../deps.ts";
+import { CXCursorRepresentation, getAvailability } from "./common.ts";
 import { processCXType, TypeMetadata } from "./type.ts";
 
 /**
@@ -19,14 +19,19 @@ export interface StructDecl extends CXCursorRepresentation {
   file: string;
   fields: StructFieldDecl[];
   size: number;
+  availability: AvailabilityEntry[];
 }
 
 export function processStruct(cursor: CXCursor): StructDecl | undefined {
+  let availability;
+  if (!(availability = getAvailability(cursor))) return;
+  
   const structDecl: StructDecl = {
     name: cursor.getSpelling(),
     file: cursor.getLocation().getFileLocation().file.getName(),
     fields: [],
     size: cursor.getType()?.getSizeOf() || 0,
+    availability,
   };
 
   if (structDecl.name === "") {

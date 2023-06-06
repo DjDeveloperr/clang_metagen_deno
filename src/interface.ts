@@ -18,6 +18,7 @@ import { processCXType, TypeMetadata } from "./type.ts";
  */
 export interface ParameterDecl extends NamedDecl {
   type: TypeMetadata;
+  typeString: string;
 }
 
 /**
@@ -27,6 +28,8 @@ export interface ParameterDecl extends NamedDecl {
 export interface MethodDecl extends NamedDecl {
   parameters: ParameterDecl[];
   result: TypeMetadata;
+  typeString: string;
+  availability: AvailabilityEntry[];
 }
 
 /** @see https://clang.llvm.org/doxygen/classclang_1_1ObjCPropertyDecl.html */
@@ -38,6 +41,7 @@ export interface PropertyDecl extends NamedDecl {
   readonly: boolean;
   nonatomic: boolean;
   weak: boolean;
+  availability: AvailabilityEntry[];
 }
 
 /**
@@ -104,6 +108,9 @@ export function processInterface(cursor: CXCursor): InterfaceDecl | undefined {
 }
 
 export function processProperty(cursor: CXCursor, properties: PropertyDecl[]) {
+  let availability;
+  if (!(availability = getAvailability(cursor))) return;
+
   const attrs = cursor.getObjCPropertyAttributes();
   const propertyDecl: PropertyDecl = {
     name: cursor.getSpelling(),
@@ -116,16 +123,22 @@ export function processProperty(cursor: CXCursor, properties: PropertyDecl[]) {
     nonatomic:
       (attrs & CXObjCPropertyAttrKind.CXObjCPropertyAttr_nonatomic) !== 0,
     weak: (attrs & CXObjCPropertyAttrKind.CXObjCPropertyAttr_weak) !== 0,
+    availability,
   };
 
   properties.push(propertyDecl);
 }
 
 export function processMethod(cursor: CXCursor, methodDecls: MethodDecl[]) {
+  let availability;
+  if (!(availability = getAvailability(cursor))) return;
+
   const methodDecl: MethodDecl = {
     name: cursor.getSpelling(),
     parameters: [],
     result: processCXType(cursor.getResultType()!),
+    typeString: cursor.getPrettyPrinted(),
+    availability,
   };
 
   for (let i = 0; i < cursor.getNumberOfArguments(); i++) {
@@ -133,6 +146,7 @@ export function processMethod(cursor: CXCursor, methodDecls: MethodDecl[]) {
     const param: ParameterDecl = {
       name: arg.getSpelling(),
       type: processCXType(arg.getType()!),
+      typeString: arg.getPrettyPrinted(),
     };
 
     methodDecl.parameters.push(param);

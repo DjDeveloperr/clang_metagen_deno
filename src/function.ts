@@ -9,6 +9,7 @@ export interface FunctionDecl extends NamedDecl {
   parameters: ParameterDecl[];
   result: TypeMetadata;
   availability: AvailabilityEntry[];
+  typeString: string;
 }
 
 export function processFunction(cursor: CXCursor): FunctionDecl | undefined {
@@ -20,6 +21,7 @@ export function processFunction(cursor: CXCursor): FunctionDecl | undefined {
     file: cursor.getLocation().getFileLocation().file.getName(),
     parameters: [],
     result: processCXType(cursor.getResultType()!),
+    typeString: cursor.getPrettyPrinted(),
     availability,
   };
 
@@ -28,6 +30,7 @@ export function processFunction(cursor: CXCursor): FunctionDecl | undefined {
     const param: ParameterDecl = {
       name: arg.getSpelling(),
       type: processCXType(arg.getType()!),
+      typeString: arg.getPrettyPrinted(),
     };
 
     functionDecl.parameters.push(param);

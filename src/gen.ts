@@ -38,9 +38,12 @@ export function generateFrameworkMetadata(
 ): Metadata {
   const frameworksDir = `${options.sdk}/System/Library/Frameworks`;
   const foundationUmbrella =
-    `${frameworksDir}/${options.framework}.framework/Headers/${
-      options.umbrellaHeader ?? options.framework
-    }.h`;
+    (options.umbrellaHeader?.startsWith("/") ||
+        options.umbrellaHeader?.startsWith("./"))
+      ? options.umbrellaHeader
+      : `${frameworksDir}/${options.framework}.framework/Headers/${
+        options.umbrellaHeader ?? options.framework
+      }.h`;
 
   return generateMetadata({
     umbrellaHeader: foundationUmbrella,
