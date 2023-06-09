@@ -60,6 +60,7 @@ export interface InterfaceDecl extends NamedDecl {
   instanceMethods: MethodDecl[];
   classMethods: MethodDecl[];
   availability: AvailabilityEntry[];
+  typeString: string;
 }
 
 export function processInterface(cursor: CXCursor): InterfaceDecl | undefined {
@@ -74,6 +75,7 @@ export function processInterface(cursor: CXCursor): InterfaceDecl | undefined {
     instanceMethods: [],
     classMethods: [],
     availability,
+    typeString: cursor.getPrettyPrinted().split("@interface ")[0],
   };
 
   cursor.visitChildren((cursor, _) => {
